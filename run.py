@@ -1,4 +1,4 @@
-from flask import Flask,request,jsonify
+from flask import Flask, json,request,jsonify
 import werkzeug
 from flask.helpers import make_response
 from flask_restful import reqparse
@@ -7,11 +7,14 @@ import shutil
 import subprocess
 import time
 import pandas as pd
-from flask_restful import Resource, Api
+from flask_restful import Resource, Api,reqparse
+from flask_sqlalchemy import SQLAlchemy
 from src.database import init_db
 from subprocess import Popen, PIPE
+import datetime
 from src.app import app
-from src.parser import ResultTable
+from src.parser import ResultTable,ProjectTable
+from src.models.models import Project,Result
 
 UPLOAD_DIR = "lib/hasp/"
 HASP_DIR = "RunHasp.bat"
@@ -37,12 +40,22 @@ def setting():
 
     return {'status':payload}
 
-class Result(Resource):
+#API endpointの設定
+class ProjectEndpoint(Resource):
     def get(self):
-        resultTable=ResultTable()
-        return {'data':resultTable.retrieve()}
+        projectTable=ProjectTable()
+        return jsonify({"data":projectTable.retrieve()})
 
-api.add_resource(Result,'/result')
+class ResultEndpoint(Resource):
+    def get(self,project_id):
+        #parser=reqparse.RequestParser()
+        #pId=parser.parse_args()
+        print ("pId",project_id)
+        resultTable=ResultTable()
+        return {"data":resultTable.retrieve(project_id)}
+
+api.add_resource(ProjectEndpoint,'/projects')
+api.add_resource(ResultEndpoint,'/results/<project_id>')
 
 @app.route('/run',methods=['POST'])
 def upload_multipart():
@@ -63,11 +76,6 @@ def upload_multipart():
     stdout,stderr=p.communicate()
     print('STDOUT: {}'.format(stdout))
 
-    #計算が終了したら、計算結果をパースする
-
-    #ブラウザからデータを取得できるAPIを準備する(visualization)
-
-    #input001.txtを消す
     #dataのほうにファイルを移動する
     folder=request.form.get('name')
     
@@ -87,24 +95,57 @@ def upload_multipart():
         shutil.move("out20.datweath.dat",os.path.join("data",folder, "out20.datweath.dat"))
         i=1
 
+        #projectTable=ProjectTable()
+        #projectInstance=projectTable.insert(folder)
+        db=SQLAlchemy()
+        p=Project(name=folder)
+
         roomExist=True
         while roomExist:
             output_file1='out20.dat___{}.csv'.format(i)
-            #print ('output_file1',output_file1)
+            print ('output_file1',output_file1)
             try:     
                 #データをparseして、データベースに保存する   
                 df1=pd.read_csv(output_file1)
-                roomT=df1["ROOM-T"]
-                #print ('df1',roomT.to_json())
+                #print ('df1',df1)
                 resultTable=ResultTable()
-                resultTable.insert(roomT.to_json())
+                roomT=df1["ROOM-T"].to_json()
+                clodS=df1["CLOD-S"].to_json()
+                rhexS=df1["RHEX-S"].to_json()
+                ahexS=df1["AHEX-S"].to_json()
+                fs=df1["FS"].to_json()
+                roomH=df1["ROOM-H"].to_json()
+                clodL=df1["CLOD-L"].to_json()
+                rhexL=df1["RHEX-L"].to_json()
+                ahexL=df1["AHEX-L"].to_json()
+                fl=df1["FL"].to_json()
+                mrt=df1["MRT'"].to_json()
+
+                #時間を計算する
+                month=df1["MO"].tolist()
+                day=df1["DY"].tolist()
+                hour=df1["HR"].tolist()
+                print('len(month)',len(month))
+                #print('month',month)
+                timeData={}
+                for i in range(len(month)):
+                    #timeseriesデータはjson serializableじゃない
+                    #timeData[i]=datetime.datetime(2021,month[i],day[i],hour[i]-1)
+                    timeData[i]=f'2021/{str(month[i])}/{str(day[i])} {str(hour[i])}:00'
+
+                #r=resultTable.insert(roomT,clodS,rhexS,ahexS,fs,roomH,clodL,rhexL,ahexL,fl,mrt)
+                r=Result(hour=timeData,roomT=roomT,clodS=clodS,rhexS=rhexS,ahexS=ahexS,fs=fs,roomH=roomH,clodL=clodL,rhexL=rhexL,ahexL=ahexL,fl=fl,mrt=mrt)
+                print ('r',r)
+                p.results.append(r)
+                db.session.add(r)
          
                 shutil.move(output_file1,os.path.join("data",folder, output_file1))
                 i+=1
             except:
                 roomExist=False
 
-        
+        db.session.add(p)
+        db.session.commit()
 
     return make_response((jsonify({'result':'upload OK.'})))
 
