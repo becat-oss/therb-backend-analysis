@@ -15,11 +15,13 @@ import datetime
 from src.app import app
 from src.parser import ResultTable,ProjectTable
 from src.models.models import Project,Result
+from flask_cors import CORS
 
 UPLOAD_DIR = "lib/hasp/"
 HASP_DIR = "RunHasp.bat"
 
 api=Api(app)
+CORS(app,origins="http://localhost:8000",allow_headers=["Access-Control-Allow-Credentials"])
 
 @app.route("/")
 def hello_world():
@@ -50,7 +52,6 @@ class ResultEndpoint(Resource):
     def get(self,project_id):
         #parser=reqparse.RequestParser()
         #pId=parser.parse_args()
-        print ("pId",project_id)
         resultTable=ResultTable()
         return {"data":resultTable.retrieve(project_id)}
 
@@ -66,13 +67,15 @@ def upload_multipart():
     fileName = file.filename
 
     saveFileName = werkzeug.utils.secure_filename(fileName)
-    #ここでdataフォルダに移動すべき
+    #TODO:ここでdataフォルダに移動すべき
     #file.save(os.path.join(UPLOAD_DIR, saveFileName))
+    print('saveFileName: {}'.format(saveFileName))
     file.save(saveFileName)
     #print ('directory',os.path.join(os.getcwd(), HASP_DIR))
 
     #batchファイルをrunする
     p = Popen(os.path.join(os.getcwd(), HASP_DIR))
+    
     stdout,stderr=p.communicate()
     print('STDOUT: {}'.format(stdout))
 
@@ -88,7 +91,7 @@ def upload_multipart():
     if os.path.exists(new_path):
         print("path already exist")
         pass
-        #名前を変えてファイルを保存する方法必要
+        #TODO:名前を変えてファイルを保存する方法必要
     else:
         os.makedirs(new_path)
         shutil.move("input001.txt",os.path.join("data",folder, "input001.txt"))
@@ -125,7 +128,6 @@ def upload_multipart():
                 month=df1["MO"].tolist()
                 day=df1["DY"].tolist()
                 hour=df1["HR"].tolist()
-                print('len(month)',len(month))
                 #print('month',month)
                 timeData={}
                 for i in range(len(month)):
@@ -135,7 +137,7 @@ def upload_multipart():
 
                 #r=resultTable.insert(roomT,clodS,rhexS,ahexS,fs,roomH,clodL,rhexL,ahexL,fl,mrt)
                 r=Result(hour=timeData,roomT=roomT,clodS=clodS,rhexS=rhexS,ahexS=ahexS,fs=fs,roomH=roomH,clodL=clodL,rhexL=rhexL,ahexL=ahexL,fl=fl,mrt=mrt)
-                print ('r',r)
+                print ('r',r.project_id)
                 p.results.append(r)
                 db.session.add(r)
          
@@ -147,7 +149,10 @@ def upload_multipart():
         db.session.add(p)
         db.session.commit()
 
-    return make_response((jsonify({'result':'upload OK.'})))
+    return make_response((jsonify({
+        'status':'success',
+        'url':f'http://localhost:8000/{str(r.project_id)}/timeseries'
+        })))
 
 if __name__=="__main__":
     app.run(debug=True)
