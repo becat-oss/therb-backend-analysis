@@ -32,4 +32,30 @@ http://localhost:5000/projects
 http://localhost:5000/results/{projectId}  
 
 ### モデリング側  
-
+以下のAPIがtherb-ghから呼び出される  
+http://localhost:5000/therb/constructionset  
+```json
+[
+  {
+    "name":"concrete",
+    "constructionSet":{
+      "exteriorwall":"concreteWall",
+      "interiorwall":"interiorWall",
+    }
+  },
+  {
+    "name":"wood",
+    "constructionSet":{
+      "exteriorwall":"concreteWall",
+      "interiorwall":"interiorWall",
+    }
+  }
+]
+```
+http://localhost:5000/therb/constructions  
+```json
+[
+  {id:1,name:concreteWall,type:exteriorwall},
+  {id:2,name:woodWall,type:exteriorwall}
+]
+```
