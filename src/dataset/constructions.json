@@ -1,0 +1,17 @@
+[
+  {
+    "id":1,
+    "name":"RC120mm exterior wall",
+    "type":"exteriorwall"
+  },
+  {
+    "id":2,
+    "name":"ALC",
+    "type":"exteriorwall"
+  },
+  {
+    "id":3,
+    "name":"ALC",
+    "type":"exteriorwall"
+  },
+]

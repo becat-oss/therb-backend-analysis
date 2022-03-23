@@ -7,8 +7,10 @@ class Project(db.Model):
     id=db.Column(db.Integer, primary_key=True)
     name=db.Column(db.String,nullable=False)
     results=db.relationship('Result',backref='project',lazy=True)
-    
+
+#roomが複数ある場合のテーブル構造を考える必要あり
 class Result(db.Model):
+    #1つのroomにつき1つのResult
     __tablename__='result'
 
     project_id=db.Column(db.Integer,db.ForeignKey('project.id'))

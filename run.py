@@ -20,6 +20,7 @@ from flask_cors import CORS
 UPLOAD_DIR = "lib/hasp/"
 HASP_DIR = "RunHasp.bat"
 
+#frontendからのデータ取得を可能にする
 api=Api(app)
 CORS(app,origins="http://localhost:8000",allow_headers=["Access-Control-Allow-Credentials"])
 
@@ -105,7 +106,9 @@ def upload_multipart():
 
         roomExist=True
         while roomExist:
-            output_file1='out20.dat___{}.csv'.format(i)
+            #FIXME:ファイルの命名規則を理解してここのロジックをブラッシュアップする必要
+            #output_file1='out20.dat___{}.csv'.format(i)
+            output_file1='out20.datS__{}.csv'.format(i)
             print ('output_file1',output_file1)
             try:     
                 #データをparseして、データベースに保存する   
@@ -135,6 +138,7 @@ def upload_multipart():
                     #timeData[i]=datetime.datetime(2021,month[i],day[i],hour[i]-1)
                     timeData[i]=f'2021/{str(month[i])}/{str(day[i])} {str(hour[i])}:00'
 
+                print ('roomT',roomT)
                 #r=resultTable.insert(roomT,clodS,rhexS,ahexS,fs,roomH,clodL,rhexL,ahexL,fl,mrt)
                 r=Result(hour=timeData,roomT=roomT,clodS=clodS,rhexS=rhexS,ahexS=ahexS,fs=fs,roomH=roomH,clodL=clodL,rhexL=rhexL,ahexL=ahexL,fl=fl,mrt=mrt)
                 print ('r',r.project_id)
