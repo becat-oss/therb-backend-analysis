@@ -16,6 +16,7 @@ from src.app import app
 from src.parser import ResultTable,ProjectTable
 from src.models.models import Project,Result
 from flask_cors import CORS
+import shutil
 
 UPLOAD_DIR = "lib/hasp/"
 HASP_DIR = "RunHasp.bat"
@@ -58,6 +59,20 @@ class ResultEndpoint(Resource):
 
 api.add_resource(ProjectEndpoint,'/projects')
 api.add_resource(ResultEndpoint,'/results/<project_id>')
+
+@app.route('/download/<project_name>',methods=['GET'])
+def download(project_name):
+    response = make_response(jsonify({"data":"download"}))
+    #データをzip化する
+    shutil.make_archive(f'data/{project_name}', 'zip', f'data/{project_name}')
+    response.data = open(f'data/{project_name}.zip', 'rb').read()
+    response.headers['Content-Type'] = 'application/zip'
+    response.headers['Content-Disposition'] = 'attachment; filename={project_name}.zip'.format(project_name=project_name)
+    return response
+
+@app.route('/test',methods=['GET'])
+def test(project_name):
+    print ('project_name',project_name)
 
 @app.route('/run',methods=['POST'])
 def upload_multipart():
