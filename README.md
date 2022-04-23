@@ -20,6 +20,7 @@ flask run
 ```
 
 ## 使い方  
+### データ処理側  
 1. NewHaspデータをuploadする(以下のようにfileとnameをbodyパラメータの構成要素とする)    
 http://localhost:5000/run  
 ![image](https://user-images.githubusercontent.com/90674244/157411568-a7c7edf7-4700-4c46-9512-a66f6f07981c.png)  
@@ -30,4 +31,31 @@ http://localhost:5000/projects
 3. uploadされたデータのtimeseriesデータを取得する  
 http://localhost:5000/results/{projectId}  
 
-
+### モデリング側  
+以下のAPIがtherb-ghから呼び出される  
+http://localhost:5000/therb/constructionset  
+```json
+[
+  {
+    "name":"concrete",
+    "constructionSet":{
+      "exteriorwall":"concreteWall",
+      "interiorwall":"interiorWall",
+    }
+  },
+  {
+    "name":"wood",
+    "constructionSet":{
+      "exteriorwall":"concreteWall",
+      "interiorwall":"interiorWall",
+    }
+  }
+]
+```
+http://localhost:5000/therb/constructions  
+```json
+[
+  {id:1,name:concreteWall,type:exteriorwall},
+  {id:2,name:woodWall,type:exteriorwall}
+]
+```
