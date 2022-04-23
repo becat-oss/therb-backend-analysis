@@ -63,6 +63,7 @@ api.add_resource(ResultEndpoint,'/results/<project_id>')
 @app.route('/download/<project_name>',methods=['GET'])
 def download(project_name):
     response = make_response(jsonify({"data":"download"}))
+    #FIXME: pathをproject_nameではなく、project_idにそろえる
     #データをzip化する
     shutil.make_archive(f'data/{project_name}', 'zip', f'data/{project_name}')
     response.data = open(f'data/{project_name}.zip', 'rb').read()
