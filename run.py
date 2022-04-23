@@ -1,3 +1,4 @@
+from unittest import result
 from flask import Flask, json,request,jsonify
 import werkzeug
 from flask.helpers import make_response
@@ -45,10 +46,22 @@ def setting():
     return {'status':payload}
 
 #API endpointの設定
-class ProjectEndpoint(Resource):
+class ProjectListEndpoint(Resource):
     def get(self):
         projectTable=ProjectTable()
         return jsonify({"data":projectTable.retrieve()})
+
+    def delete(self,id):
+        projectTable=ProjectTable()
+        projectTable.delete(id)
+        return {"status":"success"}
+
+class ProjectEndpoint(Resource):
+    def delete(self,id):
+        projectTable=ProjectTable()
+        projectTable.delete(id)
+        #TODO:projectを消したときに紐づいているresultも消すようにしたい
+        return {"status":"success"}
 
 class ResultEndpoint(Resource):
     def get(self,project_id):
@@ -57,7 +70,17 @@ class ResultEndpoint(Resource):
         resultTable=ResultTable()
         return {"data":resultTable.retrieve(project_id)}
 
-api.add_resource(ProjectEndpoint,'/projects')
+    def delete(self,project_id):
+        resultTable=ResultTable()
+        resultTable.delete(project_id)
+        # obj=Result.query.filter_by(project_id=project_id).one()
+        # db=SQLAlchemy()
+        # db.session.delete(obj)
+        # db.session.commit()
+        return {"status":"success"}
+
+api.add_resource(ProjectListEndpoint,'/projects')
+api.add_resource(ProjectEndpoint,'/projects/<id>')
 api.add_resource(ResultEndpoint,'/results/<project_id>')
 
 @app.route('/download/<project_name>',methods=['GET'])
@@ -70,6 +93,8 @@ def download(project_name):
     response.headers['Content-Type'] = 'application/zip'
     response.headers['Content-Disposition'] = 'attachment; filename={project_name}.zip'.format(project_name=project_name)
     return response
+
+
 
 @app.route('/test',methods=['GET'])
 def test(project_name):
