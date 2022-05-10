@@ -25,6 +25,7 @@ HASP_DIR = "RunHasp.bat"
 #frontendからのデータ取得を可能にする
 api=Api(app)
 CORS(app,origins="http://localhost:8000",allow_headers=["Access-Control-Allow-Credentials"])
+CORS(app,origins="http://localhost:3000",allow_headers=["Access-Control-Allow-Credentials"])
 
 @app.route("/")
 def hello_world():
@@ -138,18 +139,18 @@ def upload_multipart():
         os.makedirs(new_path)
         shutil.move("input001.txt",os.path.join("data",folder, "input001.txt"))
         shutil.move("out20.datweath.dat",os.path.join("data",folder, "out20.datweath.dat"))
-        i=1
-
+        
         #projectTable=ProjectTable()
         #projectInstance=projectTable.insert(folder)
         db=SQLAlchemy()
         p=Project(name=folder)
 
+        roomId=1
         roomExist=True
         while roomExist:
             #FIXME:ファイルの命名規則を理解してここのロジックをブラッシュアップする必要
             #output_file1='out20.dat___{}.csv'.format(i)
-            output_file1='out20.datS__{}.csv'.format(i)
+            output_file1='out20.datS__{}.csv'.format(roomId)
             print ('output_file1',output_file1)
             try:     
                 #データをparseして、データベースに保存する   
@@ -187,7 +188,7 @@ def upload_multipart():
                 db.session.add(r)
          
                 shutil.move(output_file1,os.path.join("data",folder, output_file1))
-                i+=1
+                roomId+=1
             except:
                 roomExist=False
 

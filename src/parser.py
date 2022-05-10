@@ -54,6 +54,7 @@ class ResultTable():
         res=[]
         roomId=1
         for room in data:
+            print ('room',room)
             result={}
             result["roomT"]=list(json.loads(room.roomT).values())
             result["clodS"]=list(json.loads(room.clodS).values())
