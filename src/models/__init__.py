@@ -1,4 +1,4 @@
-from .models import Project,Results
+from .models import Project
 
-#__all__=[Result,]
-__all__=[Project,Results]
+__all__=[Project,]
+#__all__=[Project,Results]

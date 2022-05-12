@@ -1,4 +1,4 @@
-from src.models.models import Results,Project
+from src.models.models import Project,Results
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import delete
 from flask import jsonify
@@ -35,13 +35,13 @@ class ProjectTable():
 
 class ResultTable():
     def delete(self,project_id):
-        sql1 = delete(Result.__table__).where(Result.project_id==project_id)
+        sql1 = delete(Results.__table__).where(Results.project_id==project_id)
         db.session.execute(sql1)
         db.session.commit()
         return {"status":"success"}
 
     def insert(self,hour,roomT,clodS,rhexS,ahexS,fs,roomH,clodL,rhexL,ahexL,fl,mrt):
-        p=Result(hour=hour,roomT=roomT,clodS=clodS,rhexS=rhexS,ahexS=ahexS,fs=fs,roomH=roomH,clodL=clodL,rhexL=rhexL,ahexL=ahexL,fl=fl,mrt=mrt)
+        p=Results(hour=hour,roomT=roomT,clodS=clodS,rhexS=rhexS,ahexS=ahexS,fs=fs,roomH=roomH,clodL=clodL,rhexL=rhexL,ahexL=ahexL,fl=fl,mrt=mrt)
         db.session.add(p)
         db.session.commit()
 
@@ -49,7 +49,7 @@ class ResultTable():
 
     def retrieve(self, project_id):
         #data=Result.query.filter(Result.project_id.any(project_id=project_id))
-        data=Result.query.filter_by(project_id=project_id)
+        data=Results.query.filter_by(project_id=project_id)
         #data=Result.query.all()
         res=[]
         roomId=1

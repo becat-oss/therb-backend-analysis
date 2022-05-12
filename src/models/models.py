@@ -5,13 +5,17 @@ from sqlalchemy.orm import (backref,scoped_session,sessionmaker,relationship)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 from src.config import Config
-#from src.database import db 
+from src.database import db 
+#from src.app import db
 
 engine = sa.create_engine(Config.SQLALCHEMY_DATABASE_URI,convert_unicode=True)
-db_session = scoped_session(sessionmaker(autocommit=False,autoflush=False,bind=engine))
 
 Base:DeclarativeMeta = declarative_base()
+Base.metadata.bind = engine
+
+db_session = scoped_session(sessionmaker(autocommit=False,autoflush=False,bind=engine))
 Base.query = db_session.query_property()
+
 
 class Project(Base):
     __tablename__='project'
@@ -43,13 +47,13 @@ class Results(Base):
     def serialize(self):
         return{"room":self.roomT}
 
-Base.metadata.create_all(engine)
+# Base.metadata.create_all(engine)
 
-# class Project(sa.Model):
+# class Project(db.Model):
 #     __tablename__='project'
 
-#     id=sa.Column(sa.Integer, primary_key=True)
-#     name=sa.Column(sa.String,nullable=False)
+#     id=db.Column(db.Integer, primary_key=True)
+#     name=db.Column(db.String,nullable=False)
 #     results=sa.relationship('Result',backref='project',lazy=True)
 
 # #roomが複数ある場合のテーブル構造を考える必要あり

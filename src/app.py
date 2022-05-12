@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_graphql import GraphQLView
+from flask_sqlalchemy import SQLAlchemy
 from src.database import init_db
 #from src.schema import schema
 from src.models.schema import schema
@@ -26,7 +27,7 @@ app = Flask(__name__)
 app.debug = True
 
 app.config.from_object('src.config.Config')
-init_db(app)
+#init_db(app)
 
 app.add_url_rule(
     '/graphql',
