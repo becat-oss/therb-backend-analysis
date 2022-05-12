@@ -15,7 +15,7 @@ from subprocess import Popen, PIPE
 import datetime
 from src.app import app
 from src.parser import ResultTable,ProjectTable
-from src.models.models import Project,Result
+from src.models.models import Project,Results,db_session
 from flask_cors import CORS
 import shutil
 
@@ -95,11 +95,22 @@ def download(project_name):
     response.headers['Content-Disposition'] = 'attachment; filename={project_name}.zip'.format(project_name=project_name)
     return response
 
+@app.route('/test',methods=['POST'])
+def test():
+    folder=request.form.get('name')
+    print('folder',folder)
+    db=SQLAlchemy()
+    p=Project(name=folder)
+    print ('project name',p.name)
 
+    db.session.add(p)
+    db.session.commit()
 
-@app.route('/test',methods=['GET'])
-def test(project_name):
-    print ('project_name',project_name)
+    return make_response((jsonify({
+        'status':'success',
+        'name':str(p.name)
+    })))
+
 
 @app.route('/run',methods=['POST'])
 def upload_multipart():
@@ -144,53 +155,7 @@ def upload_multipart():
         #projectInstance=projectTable.insert(folder)
         db=SQLAlchemy()
         p=Project(name=folder)
-
-        roomId=1
-        roomExist=True
-        while roomExist:
-            #FIXME:ファイルの命名規則を理解してここのロジックをブラッシュアップする必要
-            #output_file1='out20.dat___{}.csv'.format(i)
-            output_file1='out20.datS__{}.csv'.format(roomId)
-            print ('output_file1',output_file1)
-            try:     
-                #データをparseして、データベースに保存する   
-                df1=pd.read_csv(output_file1)
-                #print ('df1',df1)
-                resultTable=ResultTable()
-                roomT=df1["ROOM-T"].to_json()
-                clodS=df1["CLOD-S"].to_json()
-                rhexS=df1["RHEX-S"].to_json()
-                ahexS=df1["AHEX-S"].to_json()
-                fs=df1["FS"].to_json()
-                roomH=df1["ROOM-H"].to_json()
-                clodL=df1["CLOD-L"].to_json()
-                rhexL=df1["RHEX-L"].to_json()
-                ahexL=df1["AHEX-L"].to_json()
-                fl=df1["FL"].to_json()
-                mrt=df1["MRT'"].to_json()
-
-                #時間を計算する
-                month=df1["MO"].tolist()
-                day=df1["DY"].tolist()
-                hour=df1["HR"].tolist()
-                #print('month',month)
-                timeData={}
-                for i in range(len(month)):
-                    #timeseriesデータはjson serializableじゃない
-                    #timeData[i]=datetime.datetime(2021,month[i],day[i],hour[i]-1)
-                    timeData[i]=f'2021/{str(month[i])}/{str(day[i])} {str(hour[i])}:00'
-
-                print ('roomT',roomT)
-                #r=resultTable.insert(roomT,clodS,rhexS,ahexS,fs,roomH,clodL,rhexL,ahexL,fl,mrt)
-                r=Result(hour=timeData,roomT=roomT,clodS=clodS,rhexS=rhexS,ahexS=ahexS,fs=fs,roomH=roomH,clodL=clodL,rhexL=rhexL,ahexL=ahexL,fl=fl,mrt=mrt)
-                print ('r',r.project_id)
-                p.results.append(r)
-                db.session.add(r)
-         
-                shutil.move(output_file1,os.path.join("data",folder, output_file1))
-                roomId+=1
-            except:
-                roomExist=False
+        print ('project id',p.id)
 
         db.session.add(p)
         db.session.commit()
@@ -198,7 +163,61 @@ def upload_multipart():
     return make_response((jsonify({
         'status':'success',
         'url':f'http://localhost:8000/{str(r.project_id)}/timeseries'
-        })))
+    })))
+    #     roomId=1
+    #     roomExist=True
+    #     while roomExist:
+    #         #FIXME:ファイルの命名規則を理解してここのロジックをブラッシュアップする必要
+    #         #output_file1='out20.dat___{}.csv'.format(i)
+    #         output_file1='out20.datS__{}.csv'.format(roomId)
+    #         print ('output_file1',output_file1)
+    #         try:     
+    #             #データをparseして、データベースに保存する   
+    #             df1=pd.read_csv(output_file1)
+    #             #print ('df1',df1)
+    #             resultTable=ResultTable()
+    #             roomT=df1["ROOM-T"].to_json()
+    #             clodS=df1["CLOD-S"].to_json()
+    #             rhexS=df1["RHEX-S"].to_json()
+    #             ahexS=df1["AHEX-S"].to_json()
+    #             fs=df1["FS"].to_json()
+    #             roomH=df1["ROOM-H"].to_json()
+    #             clodL=df1["CLOD-L"].to_json()
+    #             rhexL=df1["RHEX-L"].to_json()
+    #             ahexL=df1["AHEX-L"].to_json()
+    #             fl=df1["FL"].to_json()
+    #             mrt=df1["MRT'"].to_json()
+
+    #             #時間を計算する
+    #             month=df1["MO"].tolist()
+    #             day=df1["DY"].tolist()
+    #             hour=df1["HR"].tolist()
+    #             #print('month',month)
+    #             timeData={}
+    #             for i in range(len(month)):
+    #                 #timeseriesデータはjson serializableじゃない
+    #                 #timeData[i]=datetime.datetime(2021,month[i],day[i],hour[i]-1)
+    #                 timeData[i]=f'2021/{str(month[i])}/{str(day[i])} {str(hour[i])}:00'
+
+    #             #print ('roomT',roomT)
+    #             #r=resultTable.insert(roomT,clodS,rhexS,ahexS,fs,roomH,clodL,rhexL,ahexL,fl,mrt)
+    #             r=Result(hour=timeData,roomT=roomT,clodS=clodS,rhexS=rhexS,ahexS=ahexS,fs=fs,roomH=roomH,clodL=clodL,rhexL=rhexL,ahexL=ahexL,fl=fl,mrt=mrt)
+    #             print ('r',r.project_id)
+    #             p.results.append(r)
+    #             db.session.add(r)
+         
+    #             shutil.move(output_file1,os.path.join("data",folder, output_file1))
+    #             roomId+=1
+    #         except:
+    #             roomExist=False
+
+    #     db.session.add(p)
+    #     db.session.commit()
+
+    # return make_response((jsonify({
+    #     'status':'success',
+    #     'url':f'http://localhost:8000/{str(r.project_id)}/timeseries'
+    #     })))
 
 if __name__=="__main__":
     app.run(debug=True)

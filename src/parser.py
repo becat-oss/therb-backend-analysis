@@ -1,4 +1,4 @@
-from src.models.models import Result,Project
+from src.models.models import Results,Project
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import delete
 from flask import jsonify
