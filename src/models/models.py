@@ -16,7 +16,6 @@ Base.metadata.bind = engine
 db_session = scoped_session(sessionmaker(autocommit=False,autoflush=False,bind=engine))
 Base.query = db_session.query_property()
 
-
 class Project(Base):
     __tablename__='project'
 

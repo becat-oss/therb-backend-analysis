@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from flask_graphql import GraphQLView
 from flask_sqlalchemy import SQLAlchemy
 from src.database import init_db
@@ -25,6 +26,8 @@ from src.models.models import db_session
 
 app = Flask(__name__)
 app.debug = True
+
+CORS(app)
 
 app.config.from_object('src.config.Config')
 #init_db(app)
