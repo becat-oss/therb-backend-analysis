@@ -2,7 +2,6 @@ from unittest import result
 from flask import Flask, json,request,jsonify
 import werkzeug
 from flask.helpers import make_response
-from flask_restful import reqparse
 import os
 import shutil
 import subprocess
@@ -209,4 +208,4 @@ def upload_multipart():
         })))
 
 if __name__=="__main__":
-    app.run(debug=True)
+    app.run(debug=True,host='0.0.0.0',port=8080)

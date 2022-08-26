@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 flask = "*"
 graphene = "*"
+pandas = "*"
+flask-graphql = "*"
 
 [dev-packages]
 mypy = "*"
