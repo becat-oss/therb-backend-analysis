@@ -6,8 +6,7 @@ import os
 import shutil
 import time
 import pandas as pd
-from flask_restful import Resource, Api,reqparse
-from flask_sqlalchemy import SQLAlchemy
+from flask_restful import Resource, Api
 from src.database import init_db
 from subprocess import Popen, PIPE
 from src.app import app
@@ -16,6 +15,7 @@ from src.models.models import Project, Results,db_session
 from flask_cors import CORS
 import shutil
 from zipfile import ZipFile
+import sys
 
 UPLOAD_DIR = "lib/hasp/"
 HASP_DIR = "RunHasp.bat"
@@ -142,32 +142,33 @@ def run_therb():
     stdout,stderr=p.communicate()
     print('STDOUT: {}'.format(stdout))
 
-    # p=Project(name=folder)
-    # new_path=os.path.join(os.path.join("data/therb",folder))
-    # print('new_path',new_path)
-    # df=parseTherb(new_path)
+    #root directoryに戻る必要
+    print (sys.path[0])
+    p=Project(name=folder)
 
-    # roomCount=int((len(df.columns)-3)/3)
+    df=parseTherb(folder)
 
-    # for i in range(1,roomCount+1):
-    #     time = df['time'].to_json()
-    #     temperature=df[f'room{i}_temperature'].to_json()
-    #     relativeHumidity=df[f'room{i}_relative_humidity'].to_json()
-    #     absoluteHumidity=df[f'room{i}_absolute_humidity'].to_json()
+    roomCount=int((len(df.columns)-3)/3)
 
-    #     r=Therb(
-    #         time=time,
-    #         name=f'room{i}',
-    #         temp=temperature,
-    #         relHumidity=relativeHumidity,
-    #         absHumidity=absoluteHumidity
-    #     )
+    for i in range(1,roomCount+1):
+        time = df['time'].to_json()
+        temperature=df[f'room{i}_temperature'].to_json()
+        relativeHumidity=df[f'room{i}_relative_humidity'].to_json()
+        absoluteHumidity=df[f'room{i}_absolute_humidity'].to_json()
 
-    #     p.therb.append(r)
-    #     db_session.add(r)
+        r=Therb(
+            time=time,
+            name=f'room{i}',
+            temp=temperature,
+            relHumidity=relativeHumidity,
+            absHumidity=absoluteHumidity
+        )
 
-    # db_session.add(p)
-    # db_session.commit()
+        p.therb.append(r)
+        db_session.add(r)
+
+    db_session.add(p)
+    db_session.commit()
 
     #dataフォルダのデータも削除する
     #shutil.rmtree(os.path.join("data",datasetName.replace(".zip","")))
@@ -175,6 +176,40 @@ def run_therb():
     return make_response((jsonify({
         'status':'not implemented yet',
     })))
+
+def parseTherb(folder):
+    def setColumn(df):
+        roomCount=(len(df.columns)-3)/3
+        colName=['month','day','hour']
+        for i in range(1,int(roomCount)+1):
+            colName.append(f'room{i}_temperature')
+            colName.append(f'room{i}_relative_humidity')
+            colName.append(f'room{i}_absolute_humidity')
+
+        df.columns=colName
+
+        return df
+
+    def formatData(col):
+        temp = int(col)
+        if len(str(temp))==1:
+            return '0'+str(temp)
+        else:
+            return str(temp)
+
+    def date_parser(x):
+        return f'{formatData(x.month)}/{formatData(x.day)}/{formatData(int(x.hour))}:00'
+        #return datetime.datetime.strptime(f'{formatData(x.month)}/{formatData(x.day)}/{formatData(int(x.hour)-1)}','%m/%d/%H')
+    
+    outputFile=os.path.join(os.path.join("data/therb",folder,"o.dat"))
+    #outputFile='data/therb/test/o.dat'
+    df=pd.read_csv(outputFile,delim_whitespace=True,header=None)
+    df = setColumn(df)
+    #TODO:flexibleなロジックにすべき
+    df = df[:8641]
+    df['time']=df.apply(date_parser,axis=1)
+    
+    return df
 
 def saveFile(source):
     file = source
