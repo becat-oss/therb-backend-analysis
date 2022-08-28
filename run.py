@@ -4,19 +4,18 @@ import werkzeug
 from flask.helpers import make_response
 import os
 import shutil
-import subprocess
 import time
 import pandas as pd
 from flask_restful import Resource, Api,reqparse
 from flask_sqlalchemy import SQLAlchemy
 from src.database import init_db
 from subprocess import Popen, PIPE
-import datetime
 from src.app import app
 from src.parser import ProjectTable
 from src.models.models import Project, Results,db_session
 from flask_cors import CORS
 import shutil
+from zipfile import ZipFile
 
 UPLOAD_DIR = "lib/hasp/"
 HASP_DIR = "RunHasp.bat"
@@ -109,6 +108,83 @@ def test():
         'name':str(p.name)
     })))
 
+@app.route('/therb/run',methods=['POST'])
+def run_therb():
+    print('run_therb')
+    dataset = request.files['dataset']
+    datasetName = dataset.filename
+    print(dataset)
+    print(datasetName)
+    #therbをrunする部分は尾崎先生の修正待ち
+    folder = "data"
+    #zipファイルを保存する
+    saveFile(dataset)
+
+    #zipファイルを解凍する
+    with ZipFile(datasetName, 'r') as zip:
+        zip.extractall(folder)
+
+    shutil.copy("lib/therb/therb.exe",os.path.join("data",datasetName.replace(".zip",""), "therb.exe"))
+    shutil.copy("lib/therb/libifcoremd.dll",os.path.join("data",datasetName.replace(".zip",""), "libifcoremd.dll"))
+    shutil.copy("lib/therb/libmmd.dll",os.path.join("data",datasetName.replace(".zip",""), "libmmd.dll"))
+    shutil.copy("lib/therb/svml_dispmd.dll",os.path.join("data",datasetName.replace(".zip",""), "svml_dispmd.dll"))
+
+    #zipファイルを削除する
+    os.remove(datasetName)
+    
+    print (os.getcwd())
+    os.chdir(os.path.join("data",datasetName.replace(".zip","")))
+    print (os.getcwd())
+    #therbシミュレーションをrunする
+    #p = Popen(os.path.join("data",datasetName.replace(".zip",""), "therb.exe"))
+    p = Popen("therb.exe")
+    
+    stdout,stderr=p.communicate()
+    print('STDOUT: {}'.format(stdout))
+
+    # p=Project(name=folder)
+    # new_path=os.path.join(os.path.join("data/therb",folder))
+    # print('new_path',new_path)
+    # df=parseTherb(new_path)
+
+    # roomCount=int((len(df.columns)-3)/3)
+
+    # for i in range(1,roomCount+1):
+    #     time = df['time'].to_json()
+    #     temperature=df[f'room{i}_temperature'].to_json()
+    #     relativeHumidity=df[f'room{i}_relative_humidity'].to_json()
+    #     absoluteHumidity=df[f'room{i}_absolute_humidity'].to_json()
+
+    #     r=Therb(
+    #         time=time,
+    #         name=f'room{i}',
+    #         temp=temperature,
+    #         relHumidity=relativeHumidity,
+    #         absHumidity=absoluteHumidity
+    #     )
+
+    #     p.therb.append(r)
+    #     db_session.add(r)
+
+    # db_session.add(p)
+    # db_session.commit()
+
+    #dataフォルダのデータも削除する
+    #shutil.rmtree(os.path.join("data",datasetName.replace(".zip","")))
+
+    return make_response((jsonify({
+        'status':'not implemented yet',
+    })))
+
+def saveFile(source):
+    file = source
+    fileName = file.filename
+
+    saveFileName = werkzeug.utils.secure_filename(fileName)
+    #TODO:ここでdataフォルダに移動すべき
+    #file.save(os.path.join(UPLOAD_DIR, saveFileName))
+    print('saveFileName: {}'.format(saveFileName))
+    file.save(saveFileName)
 
 @app.route('/run',methods=['POST'])
 def upload_multipart():
@@ -209,3 +285,4 @@ def upload_multipart():
 
 if __name__=="__main__":
     app.run(debug=True,host='0.0.0.0',port=8080)
+    #app.run(debug=True,host='0.0.0.0',port=5000)

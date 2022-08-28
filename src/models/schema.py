@@ -29,10 +29,10 @@ class InsertProject(graphene.Mutation):
 
 class Query(ObjectType):
     node = relay.Node.Field()
-    project = graphene.List(Project,q=String())
+    #project = graphene.List(Project,q=String())
     result = graphene.List(Result,q=Int())
-    all_projects = SQLAlchemyConnectionField(Project.connection)
-    all_results = SQLAlchemyConnectionField(Result.connection)
+    #all_projects = SQLAlchemyConnectionField(Project.connection)
+    #all_results = SQLAlchemyConnectionField(Result.connection)
 
     def resolve_project(self,info,**args):
         q = args.get('q')
