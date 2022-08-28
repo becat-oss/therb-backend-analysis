@@ -30,7 +30,7 @@ app.debug = True
 CORS(app)
 
 app.config.from_object('src.config.Config')
-#init_db(app)
+init_db(app)
 
 app.add_url_rule(
     '/graphql',

@@ -1,4 +1,4 @@
-from src.models.models import Project,Results
+from src.models.models import Project
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import delete
 from flask import jsonify
@@ -33,46 +33,46 @@ class ProjectTable():
 
         return res
 
-class ResultTable():
-    def delete(self,project_id):
-        sql1 = delete(Results.__table__).where(Results.project_id==project_id)
-        db.session.execute(sql1)
-        db.session.commit()
-        return {"status":"success"}
+# class ResultTable():
+#     def delete(self,project_id):
+#         sql1 = delete(Results.__table__).where(Results.project_id==project_id)
+#         db.session.execute(sql1)
+#         db.session.commit()
+#         return {"status":"success"}
 
-    def insert(self,hour,roomT,clodS,rhexS,ahexS,fs,roomH,clodL,rhexL,ahexL,fl,mrt):
-        p=Results(hour=hour,roomT=roomT,clodS=clodS,rhexS=rhexS,ahexS=ahexS,fs=fs,roomH=roomH,clodL=clodL,rhexL=rhexL,ahexL=ahexL,fl=fl,mrt=mrt)
-        db.session.add(p)
-        db.session.commit()
+#     def insert(self,hour,roomT,clodS,rhexS,ahexS,fs,roomH,clodL,rhexL,ahexL,fl,mrt):
+#         p=Results(hour=hour,roomT=roomT,clodS=clodS,rhexS=rhexS,ahexS=ahexS,fs=fs,roomH=roomH,clodL=clodL,rhexL=rhexL,ahexL=ahexL,fl=fl,mrt=mrt)
+#         db.session.add(p)
+#         db.session.commit()
 
-        return p
+#         return p
 
-    def retrieve(self, project_id):
-        #data=Result.query.filter(Result.project_id.any(project_id=project_id))
-        data=Results.query.filter_by(project_id=project_id)
-        #data=Result.query.all()
-        res=[]
-        roomId=1
-        for room in data:
-            print ('room',room)
-            result={}
-            result["roomT"]=list(json.loads(room.roomT).values())
-            result["clodS"]=list(json.loads(room.clodS).values())
-            result["rhexS"]=list(json.loads(room.rhexS).values())
-            result["ahexS"]=list(json.loads(room.ahexS).values())
-            result["fs"]=list(json.loads(room.fs).values())
-            result["roomH"]=list(json.loads(room.roomH).values())
-            result["clodL"]=list(json.loads(room.clodL).values())
-            result["rhexL"]=list(json.loads(room.rhexL).values())
-            result["ahexL"]=list(json.loads(room.ahexL).values())
-            result["fl"]=list(json.loads(room.fl).values())
-            result["mrt"]=list(json.loads(room.mrt).values())
-            result["hour"]=list(room.hour.values())
-            results={"roomId":roomId,"results":result}
-            res.append(results)
-            roomId+=1
+#     def retrieve(self, project_id):
+#         #data=Result.query.filter(Result.project_id.any(project_id=project_id))
+#         data=Results.query.filter_by(project_id=project_id)
+#         #data=Result.query.all()
+#         res=[]
+#         roomId=1
+#         for room in data:
+#             print ('room',room)
+#             result={}
+#             result["roomT"]=list(json.loads(room.roomT).values())
+#             result["clodS"]=list(json.loads(room.clodS).values())
+#             result["rhexS"]=list(json.loads(room.rhexS).values())
+#             result["ahexS"]=list(json.loads(room.ahexS).values())
+#             result["fs"]=list(json.loads(room.fs).values())
+#             result["roomH"]=list(json.loads(room.roomH).values())
+#             result["clodL"]=list(json.loads(room.clodL).values())
+#             result["rhexL"]=list(json.loads(room.rhexL).values())
+#             result["ahexL"]=list(json.loads(room.ahexL).values())
+#             result["fl"]=list(json.loads(room.fl).values())
+#             result["mrt"]=list(json.loads(room.mrt).values())
+#             result["hour"]=list(room.hour.values())
+#             results={"roomId":roomId,"results":result}
+#             res.append(results)
+#             roomId+=1
 
-        #print ('res')
-        return res
+#         #print ('res')
+#         return res
 
     

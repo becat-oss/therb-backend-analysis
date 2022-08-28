@@ -1,16 +1,20 @@
 import graphene
 from graphene import ObjectType,String,Schema,relay,Int
 from graphene_sqlalchemy import SQLAlchemyObjectType,SQLAlchemyConnectionField
-from .models import Project as ProjectModel,Results as ResultModel,db_session
+from .models import Project as ProjectModel,Therb as TherbModel,db_session
 
 class Project(SQLAlchemyObjectType):
     class Meta:
         model = ProjectModel
         interfaces = (relay.Node,)
 
-class Result(SQLAlchemyObjectType):
+# class Result(SQLAlchemyObjectType):
+#     class Meta:
+#         model = ResultModel
+#         interfaces = (relay.Node,)
+class Therb(SQLAlchemyObjectType):
     class Meta:
-        model = ResultModel
+        model = TherbModel
         interfaces = (relay.Node,)
 
 class InsertProject(graphene.Mutation):
@@ -30,7 +34,7 @@ class InsertProject(graphene.Mutation):
 class Query(ObjectType):
     node = relay.Node.Field()
     #project = graphene.List(Project,q=String())
-    result = graphene.List(Result,q=Int())
+    result = graphene.List(Therb,q=Int())
     #all_projects = SQLAlchemyConnectionField(Project.connection)
     #all_results = SQLAlchemyConnectionField(Result.connection)
 
@@ -43,7 +47,7 @@ class Query(ObjectType):
 
     def resolve_result(self,info,**args):
         q = args.get('q')
-        result_query = ResultModel.query.filter(ResultModel.project_id==q)
+        result_query = TherbModel.query.filter(TherbModel.project_id==q)
 
         return result_query
 

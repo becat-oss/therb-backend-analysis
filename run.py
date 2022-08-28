@@ -11,7 +11,7 @@ from src.database import init_db
 from subprocess import Popen, PIPE
 from src.app import app
 from src.parser import ProjectTable
-from src.models.models import Project, Results,db_session
+from src.models.models import Project, db_session,Therb
 from flask_cors import CORS
 import shutil
 from zipfile import ZipFile
@@ -27,7 +27,7 @@ CORS(app,origins="http://localhost:3000",allow_headers=["Access-Control-Allow-Cr
 
 @app.route("/")
 def hello_world():
-    return "<p>test</p>"
+    return "<p>this is API server</p>"
 
 @app.route('/setting',methods=['POST'])
 def setting():
@@ -93,47 +93,29 @@ def download(project_name):
     response.headers['Content-Disposition'] = 'attachment; filename={project_name}.zip'.format(project_name=project_name)
     return response
 
-@app.route('/test',methods=['POST'])
-def test():
-    folder=request.form.get('name')
-    print('folder',folder)
-    p=Project(name=folder)
-    print ('project name',p.name)
-
-    db_session.add(p)
-    db_session.commit()
-
-    return make_response((jsonify({
-        'status':'success',
-        'name':str(p.name)
-    })))
-
 @app.route('/therb/run',methods=['POST'])
 def run_therb():
     print('run_therb')
     dataset = request.files['dataset']
     datasetName = dataset.filename
-    print(dataset)
-    print(datasetName)
-    #therbをrunする部分は尾崎先生の修正待ち
-    folder = "data"
+
+    folder = os.path.join("data",datasetName.replace(".zip",""))
     #zipファイルを保存する
     saveFile(dataset)
 
     #zipファイルを解凍する
     with ZipFile(datasetName, 'r') as zip:
-        zip.extractall(folder)
+        zip.extractall("data")
 
-    shutil.copy("lib/therb/therb.exe",os.path.join("data",datasetName.replace(".zip",""), "therb.exe"))
-    shutil.copy("lib/therb/libifcoremd.dll",os.path.join("data",datasetName.replace(".zip",""), "libifcoremd.dll"))
-    shutil.copy("lib/therb/libmmd.dll",os.path.join("data",datasetName.replace(".zip",""), "libmmd.dll"))
-    shutil.copy("lib/therb/svml_dispmd.dll",os.path.join("data",datasetName.replace(".zip",""), "svml_dispmd.dll"))
+    shutil.copy("lib/therb/therb.exe",os.path.join(folder, "therb.exe"))
+    shutil.copy("lib/therb/libifcoremd.dll",os.path.join(folder, "libifcoremd.dll"))
+    shutil.copy("lib/therb/libmmd.dll",os.path.join(folder, "libmmd.dll"))
+    shutil.copy("lib/therb/svml_dispmd.dll",os.path.join(folder, "svml_dispmd.dll"))
 
     #zipファイルを削除する
     os.remove(datasetName)
-    
-    print (os.getcwd())
-    os.chdir(os.path.join("data",datasetName.replace(".zip","")))
+
+    os.chdir(folder)
     print (os.getcwd())
     #therbシミュレーションをrunする
     #p = Popen(os.path.join("data",datasetName.replace(".zip",""), "therb.exe"))
@@ -144,7 +126,8 @@ def run_therb():
 
     #root directoryに戻る必要
     print (sys.path[0])
-    p=Project(name=folder)
+    os.chdir(sys.path[0])
+    p=Project(name=datasetName.replace(".zip",""))
 
     df=parseTherb(folder)
 
@@ -201,7 +184,7 @@ def parseTherb(folder):
         return f'{formatData(x.month)}/{formatData(x.day)}/{formatData(int(x.hour))}:00'
         #return datetime.datetime.strptime(f'{formatData(x.month)}/{formatData(x.day)}/{formatData(int(x.hour)-1)}','%m/%d/%H')
     
-    outputFile=os.path.join(os.path.join("data/therb",folder,"o.dat"))
+    outputFile=os.path.join(os.path.join(folder,"o.dat"))
     #outputFile='data/therb/test/o.dat'
     df=pd.read_csv(outputFile,delim_whitespace=True,header=None)
     df = setColumn(df)
