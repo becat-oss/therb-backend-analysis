@@ -131,7 +131,8 @@ def run_therb():
 
     df=parseTherb(folder)
 
-    roomCount=int((len(df.columns)-3)/3)
+    #roomCount=int((len(df.columns)-3)/3)
+    roomCount=int((len(df.columns)-4)/6)
 
     for i in range(1,roomCount+1):
         time = df['time'].to_json()
@@ -154,7 +155,7 @@ def run_therb():
     db_session.commit()
 
     #dataフォルダのデータも削除する
-    #shutil.rmtree(os.path.join("data",datasetName.replace(".zip","")))
+    shutil.rmtree(os.path.join("data",datasetName.replace(".zip","")))
 
     return make_response((jsonify({
         'status':'not implemented yet',
@@ -162,12 +163,16 @@ def run_therb():
 
 def parseTherb(folder):
     def setColumn(df):
-        roomCount=(len(df.columns)-3)/3
-        colName=['month','day','hour']
+        #roomCount=(len(df.columns)-3)/3
+        roomCount=(len(df.columns)-4)/6
+        colName=['month','day','hour','outdoor']
         for i in range(1,int(roomCount)+1):
             colName.append(f'room{i}_temperature')
             colName.append(f'room{i}_relative_humidity')
             colName.append(f'room{i}_absolute_humidity')
+            colName.append(f'room{i}_knknown1')
+            colName.append(f'room{i}_knknown2')
+            colName.append(f'room{i}_knknown3')
 
         df.columns=colName
 
