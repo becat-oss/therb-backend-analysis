@@ -1,4 +1,4 @@
-from src.models.models import Project
+from src.models.models import Project,Therb
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import delete
 from flask import jsonify
@@ -33,6 +33,28 @@ class ProjectTable():
 
         return res
 
+class TherbTable():
+
+    def retrieve(self,project_id):
+        data=Therb.query.filter_by(project_id=project_id).all()
+        res=[]
+
+        roomId=1
+        for room in data:
+            print ('room',room)
+            result={}
+            result["time"]=list(json.loads(room.time).values())
+            result["temp"]=list(json.loads(room.temp).values())
+            result["relHumidity"]=list(json.loads(room.relHumidity).values())
+            result["absHumidity"]=list(json.loads(room.absHumidity).values())
+            results={"roomId":roomId,"results":result}
+            res.append(results)
+            roomId+=1
+
+        #print ('res')
+        return res
+
+        return res
 # class ResultTable():
 #     def delete(self,project_id):
 #         sql1 = delete(Results.__table__).where(Results.project_id==project_id)

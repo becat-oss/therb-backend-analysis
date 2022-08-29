@@ -17,15 +17,15 @@ Base.metadata.bind = engine
 db_session = scoped_session(sessionmaker(autocommit=False,autoflush=False,bind=engine))
 Base.query = db_session.query_property()
 
-class Project(Base):
+class Project(db.Model):
     __tablename__='project'
 
     id=sa.Column(sa.Integer, primary_key=True)
     name=sa.Column(sa.String,nullable=False)
     #results=relationship('Results',backref='project',lazy=True)
-    #therb=relationship('Therb',backref='project',lazy=True)
+    therb=relationship('Therb',backref='project',lazy=True)
 
-class Therb(Base):
+class Therb(db.Model):#graphqlではBaseを使う
     __tablename__='therb'
     project_id=sa.Column(sa.Integer,sa.ForeignKey('project.id'),nullable=False)
     id=sa.Column(sa.Integer, primary_key=True)

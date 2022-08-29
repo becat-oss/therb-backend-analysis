@@ -10,7 +10,7 @@ from flask_restful import Resource, Api
 from src.database import init_db
 from subprocess import Popen, PIPE
 from src.app import app
-from src.parser import ProjectTable
+from src.parser import ProjectTable,TherbTable
 from src.models.models import Project, db_session,Therb
 from flask_cors import CORS
 import shutil
@@ -79,9 +79,15 @@ class ResultEndpoint(Resource):
         # db.session.commit()
         return {"status":"success"}
 
+class TherbEndpoint(Resource):
+    def get(self,project_id):
+        therbTable=TherbTable()
+        return {"data":therbTable.retrieve(project_id)}
+
 api.add_resource(ProjectListEndpoint,'/projects')
 api.add_resource(ProjectEndpoint,'/projects/<id>')
 api.add_resource(ResultEndpoint,'/results/<project_id>')
+api.add_resource(TherbEndpoint,'/therb/<project_id>')
 
 @app.route('/download/<project_name>',methods=['GET'])
 def download(project_name):
@@ -130,6 +136,7 @@ def run_therb():
 
     #roomCount=int((len(df.columns)-3)/3)
     roomCount=int((len(df.columns)-4)/6)
+    db=SQLAlchemy()
 
     for i in range(1,roomCount+1):
         time = df['time'].to_json()
@@ -146,12 +153,15 @@ def run_therb():
             absHumidity=absoluteHumidity
         )
 
-        #p.therb.append(r)
-        db_session.add(r)
+        p.therb.append(r)
+        db.session.add(p)
+        #db_session.add(r)
         #db.session.add(r)
 
-    db_session.add(p)
-    db_session.commit()
+    #db_session.add(p)
+    #db_session.commit()
+    db.session.add(p)
+    db.session.commit()
     
 
     #dataフォルダのデータも削除する
