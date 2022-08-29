@@ -16,6 +16,7 @@ from flask_cors import CORS
 import shutil
 from zipfile import ZipFile
 import sys
+from flask_sqlalchemy import SQLAlchemy
 
 UPLOAD_DIR = "lib/hasp/"
 HASP_DIR = "RunHasp.bat"
@@ -95,7 +96,6 @@ def download(project_name):
 
 @app.route('/therb/run',methods=['POST'])
 def run_therb():
-    print('run_therb')
     dataset = request.files['dataset']
     datasetName = dataset.filename
 
@@ -116,16 +116,13 @@ def run_therb():
     os.remove(datasetName)
 
     os.chdir(folder)
-    print (os.getcwd())
     #therbシミュレーションをrunする
-    #p = Popen(os.path.join("data",datasetName.replace(".zip",""), "therb.exe"))
     p = Popen("therb.exe")
     
     stdout,stderr=p.communicate()
     print('STDOUT: {}'.format(stdout))
 
     #root directoryに戻る必要
-    print (sys.path[0])
     os.chdir(sys.path[0])
     p=Project(name=datasetName.replace(".zip",""))
 
@@ -141,6 +138,7 @@ def run_therb():
         absoluteHumidity=df[f'room{i}_absolute_humidity'].to_json()
 
         r=Therb(
+            project_id=p.id,
             time=time,
             name=f'room{i}',
             temp=temperature,
@@ -148,11 +146,13 @@ def run_therb():
             absHumidity=absoluteHumidity
         )
 
-        p.therb.append(r)
+        #p.therb.append(r)
         db_session.add(r)
+        #db.session.add(r)
 
     db_session.add(p)
     db_session.commit()
+    
 
     #dataフォルダのデータも削除する
     shutil.rmtree(os.path.join("data",datasetName.replace(".zip","")))
@@ -204,9 +204,6 @@ def saveFile(source):
     fileName = file.filename
 
     saveFileName = werkzeug.utils.secure_filename(fileName)
-    #TODO:ここでdataフォルダに移動すべき
-    #file.save(os.path.join(UPLOAD_DIR, saveFileName))
-    print('saveFileName: {}'.format(saveFileName))
     file.save(saveFileName)
 
 @app.route('/run',methods=['POST'])

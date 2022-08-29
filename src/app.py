@@ -8,22 +8,6 @@ from src.models.schema import schema
 from src.models.models import db_session
 #import src.models
 
-# def create_app():
-#     app = Flask(__name__)
-#     app.config.from_object('src.config.Config')
-#     init_db(app)
-
-#     app.add_url_rule('/graphql', 
-#         view_func=GraphQLView.as_view(
-#             'graphql', 
-#             schema=schema, 
-#             graphiql=True
-#         ))
-
-#     return app
-
-# app=create_app()
-
 app = Flask(__name__)
 app.debug = True
 
