@@ -34,7 +34,8 @@ rx = "==1.6.1"
 six = "==1.16.0"
 werkzeug = "==2.2.2"
 zipp = "==3.8.1"
-
+psycopg2-binary = "*"
+psycopg2 = "*"
 
 [dev-packages]
 mypy = "*"
