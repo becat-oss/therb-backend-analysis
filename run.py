@@ -102,64 +102,63 @@ def download(project_name):
 
 @app.route('/therb/run',methods=['POST'])
 def run_therb():
-    # dataset = request.files['dataset']
-    # datasetName = dataset.filename
+    dataset = request.files['dataset']
+    datasetName = dataset.filename
 
-    # folder = os.path.join("data",datasetName.replace(".zip",""))
-    # #zipファイルを保存する
-    # saveFile(dataset)
+    folder = os.path.join("data",datasetName.replace(".zip",""))
+    #zipファイルを保存する
+    saveFile(dataset)
 
-    # #zipファイルを解凍する
-    # with ZipFile(datasetName, 'r') as zip:
-    #     zip.extractall("data")
+    #zipファイルを解凍する
+    with ZipFile(datasetName, 'r') as zip:
+        zip.extractall("data")
 
-    # shutil.copy("lib/therb/therb.exe",os.path.join(folder, "therb.exe"))
-    # shutil.copy("lib/therb/libifcoremd.dll",os.path.join(folder, "libifcoremd.dll"))
-    # shutil.copy("lib/therb/libmmd.dll",os.path.join(folder, "libmmd.dll"))
-    # shutil.copy("lib/therb/svml_dispmd.dll",os.path.join(folder, "svml_dispmd.dll"))
+    shutil.copy("lib/therb/therb.exe",os.path.join(folder, "therb.exe"))
+    shutil.copy("lib/therb/libifcoremd.dll",os.path.join(folder, "libifcoremd.dll"))
+    shutil.copy("lib/therb/libmmd.dll",os.path.join(folder, "libmmd.dll"))
+    shutil.copy("lib/therb/svml_dispmd.dll",os.path.join(folder, "svml_dispmd.dll"))
 
-    # #zipファイルを削除する
-    # os.remove(datasetName)
-    # os.chdir(folder)
-    # #print (os.getcwd())
-    # #therbシミュレーションをrunする
-    # p = Popen("therb.exe")
+    #zipファイルを削除する
+    os.remove(datasetName)
+    os.chdir(folder)
+    #therbシミュレーションをrunする
+    p = Popen("therb.exe")
     
-    # stdout,stderr=p.communicate()
-    # print('STDOUT: {}'.format(stdout))
+    stdout,stderr=p.communicate()
+    print('STDOUT: {}'.format(stdout))
 
-    # #root directoryに戻る必要
-    # os.chdir(sys.path[0])
-    # p=Project(name=datasetName.replace(".zip",""))
+    #root directoryに戻る必要
+    os.chdir(sys.path[0])
+    p=Project(name=datasetName.replace(".zip",""))
 
-    # df=parseTherb(folder)
+    df=parseTherb(folder)
 
-    # roomCount=int((len(df.columns)-4)/6)
-    # db=SQLAlchemy()
+    roomCount=int((len(df.columns)-4)/6)
+    db=SQLAlchemy()
 
-    # for i in range(1,roomCount+1):
-    #     time = df['time'].to_json()
-    #     temperature=df[f'room{i}_temperature'].to_json()
-    #     relativeHumidity=df[f'room{i}_relative_humidity'].to_json()
-    #     absoluteHumidity=df[f'room{i}_absolute_humidity'].to_json()
+    for i in range(1,roomCount+1):
+        time = df['time'].to_json()
+        temperature=df[f'room{i}_temperature'].to_json()
+        relativeHumidity=df[f'room{i}_relative_humidity'].to_json()
+        absoluteHumidity=df[f'room{i}_absolute_humidity'].to_json()
 
-    #     r=Therb(
-    #         project_id=p.id,
-    #         time=time,
-    #         name=f'room{i}',
-    #         temp=temperature,
-    #         relHumidity=relativeHumidity,
-    #         absHumidity=absoluteHumidity
-    #     )
+        r=Therb(
+            project_id=p.id,
+            time=time,
+            name=f'room{i}',
+            temp=temperature,
+            relHumidity=relativeHumidity,
+            absHumidity=absoluteHumidity
+        )
 
-    #     p.therb.append(r)
-    #     db.session.add(p)
+        p.therb.append(r)
+        db.session.add(p)
 
-    # db.session.add(p)
-    # db.session.commit()
+    db.session.add(p)
+    db.session.commit()
 
-    # #dataフォルダのデータも削除する
-    # shutil.rmtree(os.path.join("data",datasetName.replace(".zip","")))
+    #dataフォルダのデータも削除する
+    shutil.rmtree(os.path.join("data",datasetName.replace(".zip","")))
 
     return make_response((jsonify({
         'status':'success',
