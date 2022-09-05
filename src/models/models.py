@@ -28,12 +28,15 @@ class Project(db.Model):
 class Therb(db.Model):#graphqlではBaseを使う
     __tablename__='therb'
     project_id=sa.Column(sa.Integer,sa.ForeignKey('project.id'),nullable=False)
-    id=sa.Column(sa.Integer, primary_key=True)
-    name=sa.Column(sa.String,nullable=False)
+    id=sa.Column(sa.Integer, primary_key=True) 
+    name=sa.Column(sa.String,nullable=False) #outdoorデータのときはname=outdoor
     time=sa.Column(sa.JSON)
     temp=sa.Column(sa.JSON)
     relHumidity=sa.Column(sa.JSON)
     absHumidity=sa.Column(sa.JSON)
+    sensibleLoad=sa.Column(sa.JSON,nullable=True)
+    latentLoad=sa.Column(sa.JSON,nullable=True)
+
 
     def serialize(self):
         return{"room":self.temp}

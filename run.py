@@ -102,6 +102,7 @@ def download(project_name):
 
 @app.route('/therb/run',methods=['POST'])
 def run_therb():
+    print (request.files)
     dataset = request.files['dataset']
     datasetName = dataset.filename
 
@@ -133,14 +134,28 @@ def run_therb():
 
     df=parseTherb(folder)
 
-    roomCount=int((len(df.columns)-4)/6)
+    roomCount=int((len(df.columns)-6)/5)
     db=SQLAlchemy()
+
+    #外気温データを保存する
+    t = Therb(
+        project_id=p.id,
+        name = "outdoor",
+        time = df['time'].to_json(),
+        temp = df['outdoorTemp'].to_json(),
+        relHumidity = df['outdoorRelHumidity'].to_json(),
+        absHumidity = df['outdoorAbsHumidity'].to_json(),
+    )
+    db.session.add(t)
+    p.therb.append(t)
 
     for i in range(1,roomCount+1):
         time = df['time'].to_json()
         temperature=df[f'room{i}_temperature'].to_json()
         relativeHumidity=df[f'room{i}_relative_humidity'].to_json()
         absoluteHumidity=df[f'room{i}_absolute_humidity'].to_json()
+        sensibleLoad=df[f'room{i}_sensible_load'].to_json()
+        latentLoad=df[f'room{i}_latent_load'].to_json()
 
         r=Therb(
             project_id=p.id,
@@ -148,11 +163,13 @@ def run_therb():
             name=f'room{i}',
             temp=temperature,
             relHumidity=relativeHumidity,
-            absHumidity=absoluteHumidity
+            absHumidity=absoluteHumidity,
+            sensibleLoad=sensibleLoad,
+            latentLoad=latentLoad,
         )
 
         p.therb.append(r)
-        db.session.add(p)
+        db.session.add(r)
 
     db.session.add(p)
     db.session.commit()
@@ -172,16 +189,22 @@ def run_therb():
 
 def parseTherb(folder):
     def setColumn(df):
-        #roomCount=(len(df.columns)-3)/3
-        roomCount=(len(df.columns)-4)/6
-        colName=['month','day','hour','outdoor']
+        roomCount=(len(df.columns)-6)/5
+        colName=['month','day','hour','outdoorTemp','outdoorRelHumidity','outdoorAbsHumidity']
         for i in range(1,int(roomCount)+1):
             colName.append(f'room{i}_temperature')
+        for i in range(1,int(roomCount)+1):
             colName.append(f'room{i}_relative_humidity')
+        for i in range(1,int(roomCount)+1):
             colName.append(f'room{i}_absolute_humidity')
-            colName.append(f'room{i}_knknown1')
-            colName.append(f'room{i}_knknown2')
-            colName.append(f'room{i}_knknown3')
+        for i in range(1,int(roomCount)+1):
+            colName.append(f'room{i}_sensible_load')
+        for i in range(1,int(roomCount)+1):
+            colName.append(f'room{i}_latent_load')
+            # colName.append(f'room{i}_relative_humidity')
+            # colName.append(f'room{i}_absolute_humidity')
+            # colName.append(f'room{i}_sensible')
+            # colName.append(f'room{i}_knknown2')
 
         df.columns=colName
 
