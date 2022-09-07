@@ -100,9 +100,75 @@ def download(project_name):
     response.headers['Content-Disposition'] = 'attachment; filename={project_name}.zip'.format(project_name=project_name)
     return response
 
+@app.route('/therb/result',methods=['POST'])
+def therb_result():
+    data = request.files['data']
+    projectName = request.form['name']
+
+    p=Project(name=projectName)
+    folder = os.path.join("data",projectName)
+    #zipファイルを保存する
+    saveFile(data)
+    os.makedirs(folder)
+    shutil.copy(data.filename,os.path.join(folder, data.filename))
+    os.remove(data.filename)
+
+    df=parseTherb(folder)
+
+    roomCount=int((len(df.columns)-6)/5)
+    db=SQLAlchemy()
+
+    #外気温データを保存する
+    t = Therb(
+        project_id=p.id,
+        name = "outdoor",
+        time = df['time'].to_json(),
+        temp = df['outdoorTemp'].to_json(),
+        relHumidity = df['outdoorRelHumidity'].to_json(),
+        absHumidity = df['outdoorAbsHumidity'].to_json(),
+    )
+    db.session.add(t)
+    p.therb.append(t)
+
+    for i in range(1,roomCount+1):
+        time = df['time'].to_json()
+        temperature=df[f'room{i}_temperature'].to_json()
+        relativeHumidity=df[f'room{i}_relative_humidity'].to_json()
+        absoluteHumidity=df[f'room{i}_absolute_humidity'].to_json()
+        sensibleLoad=df[f'room{i}_sensible_load'].to_json()
+        latentLoad=df[f'room{i}_latent_load'].to_json()
+
+        r=Therb(
+            project_id=p.id,
+            time=time,
+            name=f'room{i}',
+            temp=temperature,
+            relHumidity=relativeHumidity,
+            absHumidity=absoluteHumidity,
+            sensibleLoad=sensibleLoad,
+            latentLoad=latentLoad,
+        )
+
+        p.therb.append(r)
+        db.session.add(r)
+
+    db.session.add(p)
+    db.session.commit()
+
+    shutil.rmtree(folder)
+
+    return make_response((jsonify({
+        'status':'success',
+        'message':'therb simulation is finished',
+        'data':{
+            'project_id':p.id,
+            'url':"not implemented yet",
+            'api':f'https://oyster-app-8jboe.ondigitalocean.app/therb/{p.id}'
+        }
+    })))
+
 @app.route('/therb/run',methods=['POST'])
 def run_therb():
-    print (request.files)
     dataset = request.files['dataset']
     datasetName = dataset.filename
 
