@@ -7,4 +7,6 @@ WORKDIR /app
 RUN pip install --upgrade pip setuptools wheel
 RUN pip install -r requirements.txt
 
-CMD ["python","run.py"]
+EXPOSE 8080
+
+CMD ["python","run.py","--host=0.0.0.0","--port=8080"]

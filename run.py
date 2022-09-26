@@ -28,7 +28,7 @@ CORS(app,origins="http://localhost:3000",allow_headers=["Access-Control-Allow-Cr
 
 @app.route("/")
 def hello_world():
-    return "<p>this is API server</p>"
+    return "<p>this is API server</p>",200
 
 @app.route('/setting',methods=['POST'])
 def setting():
@@ -102,6 +102,7 @@ def download(project_name):
 
 @app.route('/therb/result',methods=['POST'])
 def therb_result():
+    print('therb_result')
     data = request.files['data']
     projectName = request.form['name']
 
@@ -109,6 +110,8 @@ def therb_result():
     folder = os.path.join("data",projectName)
     #zipファイルを保存する
     saveFile(data)
+    if os.path.exists(folder):
+        shutil.rmtree(folder)
     os.makedirs(folder)
     shutil.copy(data.filename,os.path.join(folder, data.filename))
     os.remove(data.filename)
@@ -267,10 +270,6 @@ def parseTherb(folder):
             colName.append(f'room{i}_sensible_load')
         for i in range(1,int(roomCount)+1):
             colName.append(f'room{i}_latent_load')
-            # colName.append(f'room{i}_relative_humidity')
-            # colName.append(f'room{i}_absolute_humidity')
-            # colName.append(f'room{i}_sensible')
-            # colName.append(f'room{i}_knknown2')
 
         df.columns=colName
 
@@ -292,7 +291,7 @@ def parseTherb(folder):
     df=pd.read_csv(outputFile,delim_whitespace=True,header=None)
     df = setColumn(df)
     #TODO:flexibleなロジックにすべき
-    df = df[:8641]
+    df = df[:8521]
     df['time']=df.apply(date_parser,axis=1)
     
     return df
@@ -402,5 +401,7 @@ def upload_multipart():
         })))
 
 if __name__=="__main__":
+    #digitaloceanにデプロイ用
     app.run(debug=True,host='0.0.0.0',port=8080)
+    #app.run(debug=True,host='0.0.0.0')
     #app.run(debug=True,host='0.0.0.0',port=5000)
