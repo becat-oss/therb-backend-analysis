@@ -17,6 +17,7 @@ import shutil
 from zipfile import ZipFile
 import sys
 from flask_sqlalchemy import SQLAlchemy
+import requests
 
 UPLOAD_DIR = "lib/hasp/"
 HASP_DIR = "RunHasp.bat"
@@ -89,20 +90,49 @@ api.add_resource(ProjectEndpoint,'/projects/<id>')
 api.add_resource(ResultEndpoint,'/results/<project_id>')
 api.add_resource(TherbEndpoint,'/therb/<project_id>')
 
-@app.route('/download/<project_name>',methods=['GET'])
-def download(project_name):
+@app.route('/therb/download/<id>',methods=['GET'])
+def download(id):
     response = make_response(jsonify({"data":"download"}))
     #FIXME: pathをproject_nameではなく、project_idにそろえる
+    #データをクエリする
+    rawData=Project.query.filter_by(id=id).one().therb
+    #therbデータを作成する
+    therbDfList = []
+    for i in range(len(rawData)):
+        roomData = rawData[i].toDict()
+        therbDfList.append(convertToDataframe(roomData))
+
+    print ("therbDfList",therbDfList[0])
     #データをzip化する
-    shutil.make_archive(f'data/{project_name}', 'zip', f'data/{project_name}')
-    response.data = open(f'data/{project_name}.zip', 'rb').read()
+    shutil.make_archive(f'data/{id}', 'zip', f'data/{id}')
+    response.data = open(f'data/{id}.zip', 'rb').read()
     response.headers['Content-Type'] = 'application/zip'
-    response.headers['Content-Disposition'] = 'attachment; filename={project_name}.zip'.format(project_name=project_name)
+    response.headers['Content-Disposition'] = 'attachment; filename={project_name}.zip'.format(project_name=id)
     return response
+
+def convertToDataframe(resultDict):
+    print ("resultDict",resultDict)
+    name = resultDict["name"]
+    columns = ["time","temp","relHumidity","absHumidity","sensibleLoad","lalentLoad"]
+    rows = []
+    for column in columns:
+        rows.append(resultDict[column])
+    # rows = []
+    # for k,v in resultDict.items():
+    #     columns.append(k)
+    #     rows.append(v)
+    print ("columns",columns)
+    print("rows",rows)
+    #transposedRows = np.array(rows,dtype=np.float32).T
+    transposedRows = np.array(rows).T
+    df = pd.DataFrame(data = transposedRows, columns = columns) 
+    df=df.set_index('time')
+    df=df.astype('float32')
+    #return transposedRows
+    return df
 
 @app.route('/therb/result',methods=['POST'])
 def therb_result():
-    print('therb_result')
     data = request.files['data']
     projectName = request.form['name']
 
@@ -160,9 +190,14 @@ def therb_result():
 
     shutil.rmtree(folder)
 
+    #結果をexcelファイルに変換
+    response=requests.get(f'https://ufhcn59q7f.execute-api.ap-northeast-1.amazonaws.com/stage/therb/convert/excel/{p.id}')
+
+    print("response",response)
+    
     return make_response((jsonify({
         'status':'success',
-        'message':'therb simulation is finished',
+        'message':'therb result is parsed successfully',
         'data':{
             'project_id':p.id,
             'url':"not implemented yet",

@@ -37,9 +37,20 @@ class Therb(db.Model):#graphqlではBaseを使う
     sensibleLoad=sa.Column(sa.JSON,nullable=True)
     latentLoad=sa.Column(sa.JSON,nullable=True)
 
-
     def serialize(self):
         return{"room":self.temp}
+
+    def toDict(self):
+        return{
+            "id":self.id,
+            "name":self.name,
+            "time":self.time,
+            "temp":self.temp,
+            "relHumidity":self.relHumidity,
+            "absHumidity":self.absHumidity,
+            "sensibleLoad":self.sensibleLoad,
+            "latentLoad":self.latentLoad,
+        }
 
 #roomが複数ある場合のテーブル構造を考える必要あり
 class Results(Base):

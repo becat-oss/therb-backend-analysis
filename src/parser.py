@@ -41,12 +41,13 @@ class TherbTable():
 
         roomId=1
         for room in data:
-            print ('room',room)
             result={}
             result["time"]=list(json.loads(room.time).values())
             result["temp"]=list(json.loads(room.temp).values())
             result["relHumidity"]=list(json.loads(room.relHumidity).values())
             result["absHumidity"]=list(json.loads(room.absHumidity).values())
+            result["sensibleLoad"]=list(json.loads(room.absHumidity).values())
+            result["latentLoad"]=list(json.loads(room.absHumidity).values())
             results={"roomId":roomId,"results":result}
             res.append(results)
             roomId+=1

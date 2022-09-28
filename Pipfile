@@ -36,6 +36,7 @@ werkzeug = "==2.2.2"
 zipp = "==3.8.1"
 psycopg2-binary = "*"
 psycopg2 = "*"
+requests = "*"
 
 [dev-packages]
 mypy = "*"
