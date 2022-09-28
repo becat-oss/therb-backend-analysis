@@ -39,7 +39,7 @@ class TherbTable():
         data=Therb.query.filter_by(project_id=project_id).all()
         res=[]
 
-        roomId=1
+        #roomId=1
         for room in data:
             result={}
             result["time"]=list(json.loads(room.time).values())
@@ -48,9 +48,9 @@ class TherbTable():
             result["absHumidity"]=list(json.loads(room.absHumidity).values())
             result["sensibleLoad"]=list(json.loads(room.absHumidity).values())
             result["latentLoad"]=list(json.loads(room.absHumidity).values())
-            results={"roomId":roomId,"results":result}
+            results={"roomId":room.name,"results":result}
             res.append(results)
-            roomId+=1
+            #roomId+=1
 
         #print ('res')
         return res

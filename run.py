@@ -194,7 +194,7 @@ def therb_result():
     response=requests.get(f'https://ufhcn59q7f.execute-api.ap-northeast-1.amazonaws.com/stage/therb/convert/excel/{p.id}')
 
     print("response",response)
-    
+
     return make_response((jsonify({
         'status':'success',
         'message':'therb result is parsed successfully',
@@ -321,9 +321,11 @@ def parseTherb(folder):
         return f'{formatData(x.month)}/{formatData(x.day)}/{formatData(int(x.hour))}:00'
         #return datetime.datetime.strptime(f'{formatData(x.month)}/{formatData(x.day)}/{formatData(int(x.hour)-1)}','%m/%d/%H')
     
-    outputFile=os.path.join(os.path.join(folder,"o.dat"))
+    outputFile=os.path.join(os.path.join(folder,"o.csv"))
     #outputFile='data/therb/test/o.dat'
-    df=pd.read_csv(outputFile,delim_whitespace=True,header=None)
+    #df=pd.read_csv(outputFile,delim_whitespace=True,header=None)
+    df=pd.read_csv(outputFile,header=None)
+    print (df)
     df = setColumn(df)
     #TODO:flexibleなロジックにすべき
     df = df[:8521]
