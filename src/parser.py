@@ -34,6 +34,11 @@ class ProjectTable():
         return res
 
 class TherbTable():
+    def delete(self,project_id):
+        sql1 = delete(Therb.__table__).where(Therb.project_id==project_id)
+        db.session.execute(sql1)
+        db.session.commit()
+        return {"status":"success"}
 
     def retrieve(self,project_id):
         data=Therb.query.filter_by(project_id=project_id).all()

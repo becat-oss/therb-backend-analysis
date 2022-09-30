@@ -85,6 +85,11 @@ class TherbEndpoint(Resource):
         therbTable=TherbTable()
         return {"data":therbTable.retrieve(project_id)}
 
+    def delete(self,project_id):
+        therbTable=TherbTable()
+        therbTable.delete(project_id)
+        return {"status":"success"}
+
 api.add_resource(ProjectListEndpoint,'/projects')
 api.add_resource(ProjectEndpoint,'/projects/<id>')
 api.add_resource(ResultEndpoint,'/results/<project_id>')
@@ -321,14 +326,14 @@ def parseTherb(folder):
         return f'{formatData(x.month)}/{formatData(x.day)}/{formatData(int(x.hour))}:00'
         #return datetime.datetime.strptime(f'{formatData(x.month)}/{formatData(x.day)}/{formatData(int(x.hour)-1)}','%m/%d/%H')
     
-    outputFile=os.path.join(os.path.join(folder,"o.csv"))
+    outputFile=os.path.join(os.path.join(folder,"o.dat"))
     #outputFile='data/therb/test/o.dat'
     #df=pd.read_csv(outputFile,delim_whitespace=True,header=None)
     df=pd.read_csv(outputFile,header=None)
     print (df)
     df = setColumn(df)
     #TODO:flexibleなロジックにすべき
-    df = df[:8521]
+    #df = df[:8521]
     df['time']=df.apply(date_parser,axis=1)
     
     return df
