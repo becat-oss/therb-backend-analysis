@@ -152,6 +152,7 @@ def therb_result():
     os.remove(data.filename)
 
     df=parseTherb(folder)
+    print ('df',df)
 
     roomCount=int((len(df.columns)-6)/5)
     db=SQLAlchemy()
@@ -242,7 +243,7 @@ def run_therb():
     p=Project(name=datasetName.replace(".zip",""))
 
     df=parseTherb(folder)
-
+    
     roomCount=int((len(df.columns)-6)/5)
     db=SQLAlchemy()
 

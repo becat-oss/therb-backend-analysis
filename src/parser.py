@@ -51,8 +51,10 @@ class TherbTable():
             result["temp"]=list(json.loads(room.temp).values())
             result["relHumidity"]=list(json.loads(room.relHumidity).values())
             result["absHumidity"]=list(json.loads(room.absHumidity).values())
-            result["sensibleLoad"]=list(json.loads(room.absHumidity).values())
-            result["latentLoad"]=list(json.loads(room.absHumidity).values())
+
+            if room.name!="outdoor":
+                result["sensibleLoad"]=list(json.loads(room.sensibleLoad).values())
+                result["latentLoad"]=list(json.loads(room.latentLoad).values())
             results={"roomId":room.name,"results":result}
             res.append(results)
             #roomId+=1
