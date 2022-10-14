@@ -1,4 +1,4 @@
-from src.models.models import Project,Therb
+from src.models.models import Project,Therb,Kpi
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import delete
 from flask import jsonify
@@ -29,6 +29,33 @@ class ProjectTable():
             temp["id"]=project.id
             temp["name"]=project.name
             #temp["results"]=project.results
+            res.append(temp)
+
+        return res
+
+class KpiTable():
+    def insert(self,project_id,comfortTime,heatLoad):
+        k=Kpi(project_id=project_id,comfortTime=comfortTime,heatLoad=heatLoad)
+        #projectをproject_idで検索してそこにkpiを紐づける
+        #project=Project.query.filter_by(id=int(project_id)).first()
+        project=db.session.query(Project).filter(Project.id==int(project_id)).first()
+        project.kpi.append(k)
+        db.session.add(k)
+        db.session.add(project)
+        db.session.commit()
+
+        return k
+
+    def retrieve(self,project_id):
+        data = Project.query.filter_by(id=project_id).first()
+        res=[]
+
+        for kpi in data.kpi:
+            temp={}
+            temp["project_id"]=data.id
+            temp["id"]=kpi.id
+            temp["comfortTime"]=kpi.comfortTime
+            temp["heatLoad"]=kpi.heatLoad
             res.append(temp)
 
         return res

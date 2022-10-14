@@ -10,7 +10,7 @@ from flask_restful import Resource, Api
 from src.database import init_db
 from subprocess import Popen, PIPE
 from src.app import app
-from src.parser import ProjectTable,TherbTable
+from src.parser import KpiTable, ProjectTable,TherbTable
 from src.models.models import Project, db_session,Therb
 from flask_cors import CORS
 import shutil
@@ -90,10 +90,21 @@ class TherbEndpoint(Resource):
         therbTable.delete(project_id)
         return {"status":"success"}
 
+class KpiEndpoint(Resource):
+    def post(self,project_id):
+        kpiTable=KpiTable()
+        kpiTable.insert(project_id,request.json["comfortTime"],request.json["heatLoad"])
+        return {"status":"success"}
+
+    def get(self,project_id):
+        kpiTable=KpiTable()
+        return {"data":kpiTable.retrieve(project_id)}
+
 api.add_resource(ProjectListEndpoint,'/projects')
 api.add_resource(ProjectEndpoint,'/projects/<id>')
 api.add_resource(ResultEndpoint,'/results/<project_id>')
 api.add_resource(TherbEndpoint,'/therb/<project_id>')
+api.add_resource(KpiEndpoint,'/kpis/<project_id>')
 
 @app.route('/therb/download/<id>',methods=['GET'])
 def download(id):
@@ -152,7 +163,6 @@ def therb_result():
     os.remove(data.filename)
 
     df=parseTherb(folder)
-    print ('df',df)
 
     roomCount=int((len(df.columns)-6)/5)
     db=SQLAlchemy()

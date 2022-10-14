@@ -24,7 +24,15 @@ class Project(db.Model):
     name=sa.Column(sa.String,nullable=False)
     #results=relationship('Results',backref='project',lazy=True)
     therb=relationship('Therb',backref='project',lazy=True)
+    kpi=relationship('Kpi',backref='project',lazy=True)
 
+class Kpi(db.Model):
+    __tablename__='kpi'
+    project_id=sa.Column(sa.Integer,sa.ForeignKey('project.id'),nullable=False)
+    id=sa.Column(sa.Integer, primary_key=True) 
+    comfortTime=sa.Column(sa.JSON,nullable=True)
+    heatLoad=sa.Column(sa.JSON,nullable=True)
+    
 class Therb(db.Model):#graphqlではBaseを使う
     __tablename__='therb'
     project_id=sa.Column(sa.Integer,sa.ForeignKey('project.id'),nullable=False)
