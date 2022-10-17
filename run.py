@@ -100,10 +100,21 @@ class KpiEndpoint(Resource):
         kpiTable=KpiTable()
         return {"data":kpiTable.retrieve(project_id)}
 
+    def delete(self,project_id):
+        kpiTable=KpiTable()
+        kpiTable.delete(project_id)
+        return {"status":"success"}
+
+class KpiListEndpoint(Resource):
+    def get(self):
+        kpiTable=KpiTable()
+        return jsonify({"data":kpiTable.retrieveAll()})
+
 api.add_resource(ProjectListEndpoint,'/projects')
 api.add_resource(ProjectEndpoint,'/projects/<id>')
 api.add_resource(ResultEndpoint,'/results/<project_id>')
 api.add_resource(TherbEndpoint,'/therb/<project_id>')
+api.add_resource(KpiListEndpoint,'/kpis')
 api.add_resource(KpiEndpoint,'/kpis/<project_id>')
 
 @app.route('/therb/download/<id>',methods=['GET'])
@@ -118,7 +129,6 @@ def download(id):
         roomData = rawData[i].toDict()
         therbDfList.append(convertToDataframe(roomData))
 
-    print ("therbDfList",therbDfList[0])
     #データをzip化する
     shutil.make_archive(f'data/{id}', 'zip', f'data/{id}')
     response.data = open(f'data/{id}.zip', 'rb').read()

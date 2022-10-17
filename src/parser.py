@@ -21,6 +21,11 @@ class ProjectTable():
         return p
     
     def retrieve(self):
+        
+        def getKpi(id):
+            kpi=Kpi.query.filter_by(project_id=id).first()
+            return kpi
+
         data=Project.query.all()
         res=[]
 
@@ -28,6 +33,13 @@ class ProjectTable():
             temp={}
             temp["id"]=project.id
             temp["name"]=project.name
+            #kpiがあったら
+            kpi=getKpi(project.id)
+            print("kpi",kpi)
+            if kpi:
+                temp["comfortableTime"]=kpi.comfortTime["average[%]"]
+            else:
+                temp["comfortableTime"]=0
             #temp["results"]=project.results
             res.append(temp)
 
@@ -59,6 +71,26 @@ class KpiTable():
             res.append(temp)
 
         return res
+
+    def retrieveAll(self):
+        data = Kpi.query.all()
+        res=[]
+
+        for kpi in data:
+            temp={}
+            temp["project_id"]=kpi.project_id
+            temp["id"]=kpi.id
+            temp["comfortTime"]=kpi.comfortTime
+            temp["heatLoad"]=kpi.heatLoad
+            res.append(temp)
+
+        return res
+
+    def delete(self,project_id):
+        sql1 = delete(Kpi.__table__).where(Kpi.project_id==project_id)
+        db.session.execute(sql1)
+        db.session.commit()
+        return {"status":"success"}
 
 class TherbTable():
     def delete(self,project_id):
